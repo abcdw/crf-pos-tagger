@@ -71,9 +71,114 @@ Default implementation without features shows the percentage of matches equal to
 ~0.1053~.
 
 * Improvements
+After implementation of basics it is necessary to add some features to our model
+to improve.
 
-|------------------+--------|
-| feature set      | result |
-|------------------+--------|
-| without features | 0.1053 |
-|                  |        |
+|---------------------------+--------|
+| feature set               | result |
+|---------------------------+--------|
+| without features          | 0.1053 |
+| +word suffix              | 0.7636 |
+| +mention                  | 0.7756 |
+| +hashtag                  | 0.7859 |
+| +lowercased suffix        | 0.8042 |
+| +urls                     | 0.8082 |
+| +word itself              | 0.8203 |
+| +number                   | 0.8211 |
+| +more lowercased suffixes | 0.8412 |
+| +is title                 | 0.8519 |
+| +is upper                 | 0.8537 |
+
+** Word suffix
+First most obvious and intuitive idea is using suffix of the word to determine
+part of the speech. Trying different length of the suffix shows that most score
+reached at last for characters.
+
+#+BEGIN_SRC python
+'word[-4:]': word[-4:],
+#+END_SRC
+
+** Mention and hashtag
+Obvious features for dataset based on twits, which helps model to find twitter
+specific parts of speech. 66 and 26 lines out of 2361 contains ~@~ and ~#~.
+
+#+BEGIN_SRC python
+'mention': word.startswith('@') and len(word) > 1,
+'hashtag': word.startswith('#') and len(word) > 1,
+#+END_SRC
+
+** Lowercased suffix
+This improvement also uses knowledge of dataset nature. Twitter users don't care
+about ~chAracTeRs~ case. That is why suffix was lowercased first.
+
+** Urls
+Another twitter specific part of speech is an url.
+
+#+BEGIN_SRC python
+def is_url(s):
+    # https://gist.github.com/gruber/249502#gistcomment-6465
+    if re.match(r'(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))', s):
+        return True
+    else:
+        return False
+
+'url': is_url(word),
+#+END_SRC
+
+** Word itself
+Why not? Seems it may help in some cases and it is actually helps a lot. Of
+course we use lowercased version of the word.
+
+#+BEGIN_SRC python
+'word.lower()': word.lower(),
+#+END_SRC
+
+** Number
+Another binary feature, which just emits ~True~ if token is a number.
+
+#+BEGIN_SRC python
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+'number': is_number(word),
+#+END_SRC
+
+** More lowercased suffixes
+Adding more prefixes with different length significantly improves model's score.
+
+#+BEGIN_SRC python
+'word[-3:]': word.lower()[-3:],
+'word[-2:]': word.lower()[-2:],
+'word[-1:]': word.lower()[-1:],
+#+END_SRC
+
+** Is title
+Many users don't care about case of there letters, but some people do. Probably
+the case of the character correlates with part of speech in some cases.
+
+#+BEGIN_SRC python
+'word.istitle()': word.istitle(),
+#+END_SRC
+
+** Is upper
+Can be useful for recognition of abbreviations or ~I~ token for example.
+
+#+BEGIN_SRC python
+'word.isupper()': word.isupper(),
+#+END_SRC
+
+** Another improvements and features
+Some more advanced techniques can be used for improving model accuracy. For
+example some attributes of neighbors can be added to features(if previous token
+is number probability of current token being noun is bigger, maybe :).
+
+Position in the sentence also can affect the results. It's more likely to be
+noun or proposition at the beginning of the sentence than other part of speech.
+
+* Contribution
+It is study project and it is not ready for any kind of production usage, but
+feel free to contribute via PR, issue, comment or any other way.
