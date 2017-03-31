@@ -109,7 +109,7 @@ specific parts of speech. 66 and 26 lines out of 2361 contains ~@~ and ~#~.
 
 ** Lowercased suffix
 This improvement also uses knowledge of dataset nature. Twitter users don't care
-about ~chAracTeRs~ case. That is why suffix was lowercased first.
+about ~chAracTeRs~ case. That is why lowercased suffix can increase accuracy.
 
 ** Urls
 Another twitter specific part of speech is an url.
